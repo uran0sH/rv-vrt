@@ -8,7 +8,6 @@ static TESTS: &[&str] = &[
     "exit\0",
     "forktest_simple\0",
     "hello_world\0",
-    "stack_overflow\0",
     "mmap0\0",
     "yield\0",
 ];
