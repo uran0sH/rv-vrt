@@ -56,7 +56,7 @@ pub fn sys_channel_write(service_path: *const u8, buf: *const u8, len: usize) ->
     let token = current_user_token();
     // find the task correspond to service
     let service_path_str = translated_str(token, service_path);
-    let pid = REGISTRY.find_task(&Service{path: service_path_str});
+    let pid = REGISTRY.find_task(&Service::new(service_path_str));
     let task = find_task(pid).unwrap();
 
     let buf_arr = translated_byte_buffer(token, buf, len);

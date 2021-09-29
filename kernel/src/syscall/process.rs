@@ -176,6 +176,6 @@ pub fn sys_register(file: *const u8, serivce: *const u8) -> isize {
     }
     let token = current_user_token();
     let service_path = translated_str(token, serivce);
-    REGISTRY.register(&PidHandle(pid as usize), &Service{path: service_path});
+    REGISTRY.register(&PidHandle(pid as usize), &Service::new(service_path));
     pid
 } 
