@@ -8,4 +8,4 @@ Cargo.lock
 
 .vscode
 
-./src/link_app.S
+link_app.S
