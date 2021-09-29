@@ -2,7 +2,7 @@ use alloc::sync::Arc;
 use kernel_hal::VirtAddr;
 
 use crate::mm::{translated_refmut, translated_str};
-use crate::registry::Service;
+use crate::service::Service;
 use crate::task::{PidHandle, alloc_new_frames, check_all_allocated, check_allocated, dealloc_frames, find_free_frames};
 use kernel_hal::{timer::get_time_ms};
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
         add_task, current_task, current_user_token, exit_current_and_run_next,
         suspend_current_and_run_next,
     },
-    registry::REGISTRY,
+    service::REGISTRY,
 };
 
 pub fn sys_exit(exit_code: i32) -> ! {

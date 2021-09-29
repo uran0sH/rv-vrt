@@ -25,7 +25,7 @@ mod trap;
 mod loader;
 mod fs;
 mod ipc;
-mod registry;
+mod service;
 mod syscall;
 
 global_asm!(include_str!("entry.asm"));

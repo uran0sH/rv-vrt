@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use crate::ipc::MessagePacket;
 use crate::mm::{UserBuffer, translated_byte_buffer, translated_str};
 use crate::task::{PidHandle, current_task, current_user_token, find_task};
-use crate::registry::{REGISTRY, Service};
+use crate::service::{REGISTRY, Service};
 
 pub fn sys_write(fd: usize, buf: *const u8, len: usize) -> isize {
     let token = current_user_token();
