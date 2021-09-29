@@ -1,6 +1,6 @@
+use kernel_hal::{KERNEL_STACK_SIZE, PAGE_SIZE, TRAMPOLINE, VirtAddr};
+use crate::mm::{KERNEL_SPACE, MapPermission};
 use super::pid::PidHandle;
-use crate::config::*;
-use crate::riscv_mm::{MapPermission, VirtAddr, KERNEL_SPACE};
 
 pub struct KernelStack {
     pid: usize,

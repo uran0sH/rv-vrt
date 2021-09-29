@@ -1,5 +1,5 @@
-use crate::{sbi::console_getchar, task::suspend_current_and_run_next};
-
+use crate::task::suspend_current_and_run_next;
+use kernel_hal::sbi::console_getchar;
 use super::File;
 
 pub struct Stdin;
@@ -7,7 +7,7 @@ pub struct Stdin;
 pub struct Stdout;
 
 impl File for Stdin {
-    fn read(&self, mut buf: crate::riscv_mm::UserBuffer) -> usize {
+    fn read(&self, mut buf: crate::mm::UserBuffer) -> usize {
         assert_eq!(buf.len(), 1);
         let mut c: usize;
         loop {
@@ -26,17 +26,17 @@ impl File for Stdin {
         1
     }
 
-    fn write(&self, _buf: crate::riscv_mm::UserBuffer) -> usize {
+    fn write(&self, _buf: crate::mm::UserBuffer) -> usize {
         panic!("Cannot write to stdin!");
     }
 }
 
 impl File for Stdout {
-    fn read(&self, _buf: crate::riscv_mm::UserBuffer) -> usize {
+    fn read(&self, _buf: crate::mm::UserBuffer) -> usize {
         panic!("Cannot read from stdout!");
     }
 
-    fn write(&self, buf: crate::riscv_mm::UserBuffer) -> usize {
+    fn write(&self, buf: crate::mm::UserBuffer) -> usize {
         for buffer in buf.buffers.iter() {
             print!("{}", core::str::from_utf8(*buffer).unwrap());
         }

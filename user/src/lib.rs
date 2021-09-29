@@ -93,3 +93,15 @@ pub fn mmap_create(len: usize, prot: usize) -> isize {
 pub fn munmap(start: usize, len: usize) -> isize {
     sys_munmap(start, len)
 }
+
+pub fn channel_read(buf: &mut [u8]) -> isize {
+    sys_channel_read(buf, buf.len())
+}
+
+pub fn channel_write(path: &str, buf: &[u8]) -> isize {
+    sys_channel_write(path, buf, buf.len())
+}
+
+pub fn register(file: &str, service: &str) -> isize {
+    sys_register(file, service)
+}

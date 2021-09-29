@@ -1,17 +1,11 @@
 use core::cmp::Ordering;
 
 use alloc::{collections::BTreeMap, sync::Arc, vec::Vec};
+use kernel_hal::{MEMORY_END, PAGE_SIZE, PTEFlags, PageTableEntry, PhysAddr, PhysPageNum, StepByOne, TRAMPOLINE, TRAP_CONTEXT, USER_STACK_SIZE, VPNRange, VirtAddr, VirtPageNum};
 use lazy_static::*;
-use riscv::register::satp;
 use spin::Mutex;
 
-use crate::{config::*, riscv_mm::address::StepByOne};
-
-use super::{
-    address::{PhysAddr, PhysPageNum, VPNRange, VirtAddr, VirtPageNum},
-    frame_allocator::{frame_alloc, FrameTracker},
-    page_table::{PTEFlags, PageTable, PageTableEntry},
-};
+use super::{frame_allocator::{FrameTracker, frame_alloc}, page_table::PageTable};
 
 extern "C" {
     fn stext();
@@ -435,10 +429,7 @@ impl MemorySet {
 
     pub fn activate(&self) {
         let satp = self.page_table.token();
-        unsafe {
-            satp::write(satp);
-            llvm_asm!("sfence.vma" :::: "volatile");
-        }
+        kernel_hal::vm::activate_paging(satp);
     }
 
     pub fn translate(&self, vpn: VirtPageNum) -> Option<PageTableEntry> {

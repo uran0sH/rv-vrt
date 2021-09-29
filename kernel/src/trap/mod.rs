@@ -1,21 +1,17 @@
 pub mod context;
 
 pub use context::TrapContext;
+use kernel_hal::{TRAMPOLINE, TRAP_CONTEXT, timer::set_next_trigger};
 use riscv::register::{
     scause::{self, Exception, Interrupt, Trap},
     sie, stval, stvec,
     utvec::TrapMode,
 };
 
-use crate::{
-    config::{TRAMPOLINE, TRAP_CONTEXT},
-    syscall::syscall,
-    task::{
+use crate::{syscall::syscall, task::{
         current_trap_cx, current_user_token, exit_current_and_run_next,
         suspend_current_and_run_next,
-    },
-    timer::set_next_trigger,
-};
+    }};
 
 global_asm!(include_str!("trap.S"));
 

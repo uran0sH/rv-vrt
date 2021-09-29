@@ -1,13 +1,14 @@
-use crate::fs::{Stdin, Stdout};
-use crate::riscv_mm::VirtPageNum;
-use crate::{config::*, fs::File, trap::trap_handler};
+use crate::fs::{File, Stdin, Stdout};
+use crate::mm::{MemorySet, KERNEL_SPACE, MapPermission};
+use crate::trap::trap_handler;
+use crate::ipc::Channel;
 use alloc::sync::{Arc, Weak};
 use alloc::vec;
 use alloc::vec::Vec;
+use kernel_hal::{PhysPageNum, TRAP_CONTEXT, VirtAddr, VirtPageNum};
 use spin::{Mutex, MutexGuard};
 
 use crate::{
-    riscv_mm::{MapPermission, MemorySet, PhysPageNum, VirtAddr, KERNEL_SPACE},
     trap::TrapContext,
 };
 
@@ -69,6 +70,7 @@ impl TaskControlBlock {
                     // 2 -> stderr
                     Some(Arc::new(Stdout)),
                 ],
+                channel: Channel::create(),
             }),
         };
         // prepare TrapContext in user space
@@ -115,6 +117,7 @@ impl TaskControlBlock {
                 children: Vec::new(),
                 exit_code: 0,
                 fd_table: new_fd_table,
+                channel: Channel::create(),
             }),
         });
         // add child
@@ -191,6 +194,7 @@ impl TaskControlBlock {
                 children: Vec::new(),
                 exit_code: 0,
                 fd_table: new_fd_table,
+                channel: Channel::create(),
             }),
         });
         parent_inner.children.push(task_control_block.clone());
@@ -221,6 +225,7 @@ pub struct TaskControlBlockInner {
     pub children: Vec<Arc<TaskControlBlock>>,
     pub exit_code: i32,
     pub fd_table: Vec<Option<Arc<dyn File + Send + Sync>>>,
+    pub channel: (Arc<Channel>, Arc<Channel>), // channel0 is read endpoint, channel1 is write endpoint
 }
 
 impl TaskControlBlockInner {
@@ -264,6 +269,7 @@ impl TaskControlBlockInner {
         self.memory_set.check_all_allocated(start, end)
     }
 
+    #[allow(dead_code)]
     pub fn alloc_fd(&mut self) -> usize {
         if let Some(fd) = (0..self.fd_table.len()).find(|fd| self.fd_table[*fd].is_none()) {
             fd

@@ -6,19 +6,21 @@ mod processor;
 mod switch;
 mod task;
 
-use crate::riscv_mm::{MapPermission, VirtPageNum};
-use crate::{loader::get_app_data_by_name, riscv_mm::VirtAddr};
 use alloc::sync::Arc;
+use kernel_hal::{VirtAddr, VirtPageNum};
 use lazy_static::*;
 use task::{TaskControlBlock, TaskStatus};
+use crate::mm::MapPermission;
 
 pub use context::TaskContext;
 pub use kernel_stack::KernelStack;
-pub use manager::{add_task, TASK_MANAGER};
+pub use manager::{add_task, TASK_MANAGER, find_task};
 pub use pid::{pid_alloc, PidHandle};
 pub use processor::{
     current_task, current_trap_cx, current_user_token, run_tasks, schedule, take_current_task,
 };
+
+use crate::loader::get_app_data_by_name;
 
 lazy_static! {
     pub static ref INITPROC: Arc<TaskControlBlock> = Arc::new(TaskControlBlock::new(

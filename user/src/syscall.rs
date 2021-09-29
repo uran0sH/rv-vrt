@@ -13,6 +13,9 @@ const SYSCALL_MMAP: usize = 222;
 const SYSCALL_WAITPID: usize = 260;
 const SYSCALL_CREATE_TASK: usize = 400;
 const SYSCALL_MMAP_CREATE: usize = 401;
+const SYSCALL_SERVICE_REGISTER: usize = 500;
+const SYSCALL_CHANNEL_READ: usize = 501;
+const SYSCALL_CHANNEL_WRITE: usize = 502;
 
 fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
@@ -86,4 +89,16 @@ pub fn sys_mmap(start: usize, len: usize, prot: usize) -> isize {
 
 pub fn sys_munmap(start: usize, len: usize) -> isize {
     syscall(SYSCALL_MUNMAP, [start, len, 0])
+}
+
+pub fn sys_channel_read(buf: &mut [u8], len: usize) -> isize {
+    syscall(SYSCALL_CHANNEL_READ, [buf.as_mut_ptr() as usize, len, 0])
+}
+
+pub fn sys_channel_write(path: &str, buf: &[u8], len: usize) -> isize {
+    syscall(SYSCALL_CHANNEL_WRITE, [path.as_ptr() as usize, buf.as_ptr() as usize, len])
+}
+
+pub fn sys_register(file: &str, service: &str) -> isize {
+    syscall(SYSCALL_SERVICE_REGISTER, [file.as_ptr() as usize, service.as_ptr() as usize, 0])
 }

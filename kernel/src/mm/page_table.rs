@@ -1,67 +1,10 @@
-use alloc::vec;
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec};
+use alloc::vec::Vec;
+use kernel_hal::{PTEFlags, PageTableEntry, PhysAddr, PhysPageNum, StepByOne, VirtAddr, VirtPageNum};
 
-use super::PhysAddr;
-use super::{
-    address::{PhysPageNum, StepByOne, VirtPageNum},
-    frame_allocator::{frame_alloc, FrameTracker},
-    VirtAddr,
-};
+use crate::mm::frame_allocator::frame_alloc;
 
-bitflags! {
-    pub struct PTEFlags: u8 {
-        const V = 1 << 0;
-        const R = 1 << 1;
-        const W = 1 << 2;
-        const X = 1 << 3;
-        const U = 1 << 4;
-        const G = 1 << 5;
-        const A = 1 << 6;
-        const D = 1 << 7;
-    }
-}
-
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub struct PageTableEntry {
-    pub bits: usize,
-}
-
-impl PageTableEntry {
-    pub fn new(ppn: PhysPageNum, flags: PTEFlags) -> Self {
-        Self {
-            bits: ppn.0 << 10 | flags.bits as usize,
-        }
-    }
-
-    pub fn empty() -> Self {
-        PageTableEntry { bits: 0 }
-    }
-
-    pub fn ppn(&self) -> PhysPageNum {
-        (self.bits >> 10 & ((1usize << 44) - 1)).into()
-    }
-
-    pub fn flags(&self) -> PTEFlags {
-        PTEFlags::from_bits(self.bits as u8).unwrap()
-    }
-
-    pub fn is_valid(&self) -> bool {
-        (self.flags() & PTEFlags::V) != PTEFlags::empty()
-    }
-
-    pub fn readable(&self) -> bool {
-        (self.flags() & PTEFlags::R) != PTEFlags::empty()
-    }
-
-    pub fn writable(&self) -> bool {
-        (self.flags() & PTEFlags::W) != PTEFlags::empty()
-    }
-
-    pub fn executable(&self) -> bool {
-        (self.flags() & PTEFlags::X) != PTEFlags::empty()
-    }
-}
+use super::frame_allocator::FrameTracker;
 
 pub struct PageTable {
     root_ppn: PhysPageNum,
@@ -77,10 +20,9 @@ impl PageTable {
         }
     }
 
-    /// Temporarily used to get arguments from user space.
     pub fn from_token(satp: usize) -> Self {
         Self {
-            root_ppn: PhysPageNum::from(satp & ((1usize << 44) - 1)),
+            root_ppn: kernel_hal::vm::calculate_root_ppn(satp),// calculate root ppn
             frames: Vec::new(),
         }
     }
@@ -149,7 +91,7 @@ impl PageTable {
     }
 
     pub fn token(&self) -> usize {
-        8usize << 60 | self.root_ppn.0
+        kernel_hal::vm::get_vmtoken(self.root_ppn.0)
     }
 }
 
@@ -203,6 +145,7 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
         .get_mut()
 }
 
+#[allow(dead_code)]
 pub fn check_address_valid(token: usize, ptr: *const u8, len: usize) -> bool {
     let page_table = PageTable::from_token(token);
     let start = ptr as usize;

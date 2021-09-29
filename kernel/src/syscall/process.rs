@@ -1,17 +1,18 @@
 use alloc::sync::Arc;
+use kernel_hal::VirtAddr;
 
-use crate::riscv_mm::{translated_refmut, translated_str};
-use crate::task::{
-    alloc_new_frames, check_all_allocated, check_allocated, dealloc_frames, find_free_frames,
-};
-use crate::timer::get_time_ms;
+use crate::mm::{translated_refmut, translated_str};
+use crate::registry::Service;
+use crate::task::{PidHandle, alloc_new_frames, check_all_allocated, check_allocated, dealloc_frames, find_free_frames};
+use kernel_hal::{timer::get_time_ms};
 use crate::{
     loader::get_app_data_by_name,
-    riscv_mm::{MapPermission, VirtAddr},
+    mm::MapPermission,
     task::{
         add_task, current_task, current_user_token, exit_current_and_run_next,
         suspend_current_and_run_next,
     },
+    registry::REGISTRY,
 };
 
 pub fn sys_exit(exit_code: i32) -> ! {
@@ -167,3 +168,14 @@ pub fn sys_create_task(file: *const u8) -> isize {
         -1
     }
 }
+
+pub fn sys_register(file: *const u8, serivce: *const u8) -> isize {
+    let pid = sys_create_task(file);
+    if pid == -1 {
+        return -1
+    }
+    let token = current_user_token();
+    let service_path = translated_str(token, serivce);
+    REGISTRY.register(&PidHandle(pid as usize), &Service{path: service_path});
+    pid
+} 

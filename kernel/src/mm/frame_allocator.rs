@@ -1,11 +1,8 @@
 use alloc::vec::Vec;
+use kernel_hal::{MEMORY_END, PhysAddr, PhysPageNum};
 use core::fmt::{self, Debug, Formatter};
 use lazy_static::*;
 use spin::Mutex;
-
-use crate::{config::MEMORY_END, riscv_mm::address::PhysAddr};
-
-use super::address::PhysPageNum;
 
 trait FrameAllocator {
     fn new() -> Self;

@@ -1,6 +1,5 @@
 mod stdio;
-
-use crate::riscv_mm::UserBuffer;
+use crate::mm::UserBuffer;
 
 pub trait File: Send + Sync {
     fn read(&self, buf: UserBuffer) -> usize;
